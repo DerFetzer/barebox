@@ -62,6 +62,12 @@ config MACH_RADXA_ROCK
 	select MFD_ACT8846
 	bool "Radxa rock board"
 
+config MACH_HAIERPAD_1043
+	select ARCH_RK3188
+	select I2C
+	select MFD_ACT8846
+	bool "Haierpad 1043"
+
 config MACH_PHYTEC_SOM_RK3288
 	select ARCH_RK3288
 	select I2C

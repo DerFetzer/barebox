@@ -25,6 +25,10 @@ pblb-$(CONFIG_MACH_RADXA_ROCK) += start_radxa_rock
 FILE_barebox-radxa-rock.img = start_radxa_rock.pblb
 image-$(CONFIG_MACH_RADXA_ROCK) += barebox-radxa-rock.img
 
+pblb-$(CONFIG_MACH_HAIERPAD_1043) += start_haierpad_1043
+FILE_barebox-haierpad-1043.img = start_haierpad_1043.pblb
+image-$(CONFIG_MACH_HAIERPAD_1043) += barebox-haierpad-1043.img
+
 pblb-$(CONFIG_MACH_PHYTEC_SOM_RK3288) += start_rk3288_phycore_som
 FILE_barebox-rk3288-phycore-som.img = start_rk3288_phycore_som.pblb
 image-$(CONFIG_MACH_PHYTEC_SOM_RK3288) += barebox-rk3288-phycore-som.img
