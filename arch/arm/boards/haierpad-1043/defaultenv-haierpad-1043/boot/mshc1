@@ -4,4 +4,6 @@ mount /dev/mmc0.0
 
 global.bootm.oftree=/mnt/mmc0.0/rk3188-haierpad-1043.dtb
 global.bootm.image=/mnt/mmc0.0/zImage
+
 global.linux.bootargs.dyn.root="root=/dev/mmcblk0p2 rootwait"
+global linux.bootargs.debug="loglevel=7"
