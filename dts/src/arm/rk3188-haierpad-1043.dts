@@ -5,6 +5,8 @@
 
 /dts-v1/;
 #include <dt-bindings/input/input.h>
+#include <dt-bindings/clock/rk618-cru.h>
+#include <dt-bindings/display/drm_mipi_dsi.h>
 #include "rk3188.dtsi"
 
 / {
@@ -47,6 +49,14 @@
 		startup-delay-us = <100000>;
 		vin-supply = <&vdd_io>;
 	};
+
+    backlight: backlight {
+        status = "okay";
+        compatible = "pwm-backlight";
+        pwms = <&pwm3 0 25000 0>;
+        enable-gpios = <&gpio0 RK_PA2 GPIO_ACTIVE_HIGH>;
+        default-brightness-level = <150>;
+    };
 };
 
 &cpu0 {
@@ -181,6 +191,130 @@
 			};
         };
     };
+
+	rk618@50 {
+		compatible = "rockchip,rk618";
+		reg = <0x50>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2s0_bus>;
+		clocks = <&cru SCLK_I2S0>;
+		clock-names = "clkin";
+		assigned-clocks = <&cru SCLK_I2S0>;
+		assigned-clock-rates = <12000000>;
+		reset-gpios = <&gpio3 RK_PB2 GPIO_ACTIVE_HIGH>;
+		enable-gpios = <&gpio0 RK_PA3 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+
+		clock: cru {
+			compatible = "rockchip,rk618-cru";
+			clocks = <&cru SCLK_I2S0>, <&cru DCLK_LCDC0>, <&cru DCLK_LCDC1>;
+			clock-names = "clkin", "lcdc0_dclkp";
+			assigned-clocks = <&clock SCALER_PLLIN_CLK>,
+					  <&clock VIF_PLLIN_CLK>,
+					  <&clock SCALER_CLK>,
+					  <&clock VIF0_PRE_CLK>,
+					  <&clock CODEC_CLK>,
+					  <&clock DITHER_CLK>;
+			assigned-clock-parents = <&cru SCLK_I2S0>,
+						 <&clock LCDC0_CLK>,
+						 <&clock SCALER_PLL_CLK>,
+						 <&clock VIF_PLL_CLK>,
+						 <&cru SCLK_I2S0>,
+						 <&clock VIF0_CLK>;
+			#clock-cells = <1>;
+			status = "okay";
+		};
+
+		dsi {
+			compatible = "rockchip,rk618-dsi";
+			clocks = <&clock MIPI_CLK>;
+			clock-names = "dsi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+					reg = <0>;
+
+                    lvds_in_vop0: endpoint {
+                        remote-endpoint = <&vop0_out_lvds>;
+                    };
+				};
+			};
+
+			panel@0 {
+				compatible = "simple-panel-dsi";
+				reg = <0>;
+				power-supply = <&ldo_tp>;
+				backlight = <&backlight>;
+				// reset-gpios = <&gpio2 RK_PA0 GPIO_ACTIVE_LOW>;
+				prepare-delay-ms = <20>;
+				reset-delay-ms = <20>;
+				init-delay-ms = <20>;
+				enable-delay-ms = <120>;
+				disable-delay-ms = <20>;
+				unprepare-delay-ms = <20>;
+
+				width-mm = <218>;
+				height-mm = <136>;
+
+				dsi,flags = <(MIPI_DSI_MODE_VIDEO |
+					      MIPI_DSI_MODE_VIDEO_BURST |
+					      MIPI_DSI_MODE_LPM |
+					      MIPI_DSI_MODE_EOT_PACKET)>;
+				dsi,format = <MIPI_DSI_FMT_RGB888>;
+				dsi,lanes = <4>;
+
+                /*
+				panel-init-sequence = [
+					15 00 02 b0 00
+					15 00 02 d6 01
+					39 00 06 b3 14 08 00 22 00
+					15 00 02 b4 0c
+					15 00 02 DE 00
+					39 00 03 b6 3a d3
+					15 00 02 51 E0
+					15 00 02 53 04
+					15 00 02 3a 77
+					15 00 02 35 01
+					39 00 05 2A 00 00 04 AF
+					39 00 05 2B 00 00 07 7F
+					05 96 01 29
+					05 14 01 11
+				];
+
+				panel-exit-sequence = [
+					05 00 01 28
+					05 00 01 10
+				];
+                */
+
+				display-timings {
+					native-mode = <&timing1>;
+
+					timing1: timing1 {
+						clock-frequency = <164000000>;
+						hactive = <1920>;
+						vactive = <1200>;
+						hback-porch = <11>;
+						hfront-porch = <446>;
+						vback-porch = <5>;
+						vfront-porch = <10>;
+						hsync-len = <11>;
+						vsync-len = <5>;
+						hsync-active = <0>;
+						vsync-active = <0>;
+						de-active = <0>;
+						pixelclk-active = <0>;
+					};
+				};
+			};
+		};
+	};
 };
 
 &mmc0 {
@@ -263,3 +397,14 @@
 &wdt {
 	status = "okay";
 };
+
+&vop0 {
+	status = "okay";
+};
+
+&vop0_out {
+	vop0_out_lvds: endpoint {
+		remote-endpoint = <&lvds_in_vop0>;
+	};
+};
+
