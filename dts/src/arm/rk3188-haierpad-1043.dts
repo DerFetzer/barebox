@@ -191,6 +191,11 @@
 			};
         };
     };
+};
+
+&i2c4 {
+	status = "okay";
+	clock-frequency = <100000>;
 
 	rk618@50 {
 		compatible = "rockchip,rk618";
@@ -225,6 +230,37 @@
 			status = "okay";
 		};
 
+        rgb {
+            compatible = "rockchip,rk618-rgb";
+            clocks = <&clock RGB_CLK>;
+            clock-names = "rgb";
+            status = "okay";
+
+            ports {
+                #address-cells = <1>;
+                #size-cells = <0>;
+
+                port@0 {
+                    reg = <0>;
+
+                    bridge_input_rgb: endpoint {
+                        remote-endpoint = <&vop1_out_rgb>;
+                    };
+                };
+
+                port@1 {
+                    reg = <1>;
+                    #address-cells = <1>;
+                    #size-cells = <0>;
+
+                    rgb_output_panel: endpoint@0 {
+                        reg = <0>;
+                        remote-endpoint = <&rgb_in_vop1>;
+                    };
+                };
+            };
+        };
+
 		dsi {
 			compatible = "rockchip,rk618-dsi";
 			clocks = <&clock MIPI_CLK>;
@@ -240,8 +276,15 @@
 				port@0 {
 					reg = <0>;
 
-                    lvds_in_vop0: endpoint {
-                        remote-endpoint = <&vop0_out_lvds>;
+                    rgb_in_vop1: endpoint {
+                        remote-endpoint = <&rgb_output_panel>;
+                    };
+				};
+				port@1 {
+					reg = <1>;
+
+                    dsi_out_panel: endpoint {
+                        remote-endpoint = <&panel_in_dsi>;
                     };
 				};
 			};
@@ -269,30 +312,6 @@
 				dsi,format = <MIPI_DSI_FMT_RGB888>;
 				dsi,lanes = <4>;
 
-                /*
-				panel-init-sequence = [
-					15 00 02 b0 00
-					15 00 02 d6 01
-					39 00 06 b3 14 08 00 22 00
-					15 00 02 b4 0c
-					15 00 02 DE 00
-					39 00 03 b6 3a d3
-					15 00 02 51 E0
-					15 00 02 53 04
-					15 00 02 3a 77
-					15 00 02 35 01
-					39 00 05 2A 00 00 04 AF
-					39 00 05 2B 00 00 07 7F
-					05 96 01 29
-					05 14 01 11
-				];
-
-				panel-exit-sequence = [
-					05 00 01 28
-					05 00 01 10
-				];
-                */
-
 				display-timings {
 					native-mode = <&timing1>;
 
@@ -312,6 +331,12 @@
 						pixelclk-active = <0>;
 					};
 				};
+
+                port {
+                    panel_in_dsi: endpoint {
+                        remote-endpoint = <&dsi_out_panel>;
+                    };
+                };
 			};
 		};
 	};
@@ -398,13 +423,22 @@
 	status = "okay";
 };
 
+&display_subsystem {
+	status = "okay";
+};
+
 &vop0 {
 	status = "okay";
 };
 
+&vop1 {
+	status = "okay";
+};
+
 &vop0_out {
-	vop0_out_lvds: endpoint {
-		remote-endpoint = <&lvds_in_vop0>;
+	vop1_out_rgb: endpoint {
+        reg = <0>;
+		remote-endpoint = <&bridge_input_rgb>;
 	};
 };
 
