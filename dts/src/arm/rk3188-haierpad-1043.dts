@@ -15,6 +15,7 @@
 
 	aliases {
 		mmc0 = &mmc0;
+		mmc1 = &mmc1;
 	};
 
 	memory@60000000 {
@@ -48,6 +49,31 @@
 		pinctrl-0 = <&sdmmc_pwr>;
 		startup-delay-us = <100000>;
 		vin-supply = <&vdd_io>;
+	};
+
+	wifi_pwrseq: wifi_pwrseq {
+		compatible = "mmc-pwrseq-simple";
+		pinctrl-names = "default";
+		pinctrl-0 = <&wifi_pwr>;
+		reset-gpios = <&gpio3 RK_PD0 GPIO_ACTIVE_LOW>;
+		post-power-on-delay-ms = <10>;
+
+		// Must be given. Hopefully this does not break anything.
+		clocks = <&cru SCLK_SDIO>;
+		clock-names = "ext_clock";
+	};
+
+	vcc_ap6210: ap6210-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "ap6210-supply";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio1 RK_PB5 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&ap6210_pwr>;
+		startup-delay-us = <100000>;
+		vin-supply = <&vdd_io>;
+		regulator-always-on;
 	};
 
     backlight: backlight {
@@ -299,6 +325,30 @@
 	disable-wp;
 };
 
+&mmc1 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&sd1_clk>, <&sd1_cmd>, <&sd1_cd>, <&sd1_bus4>;
+	bus-width = <4>;
+	mmc-pwrseq = <&wifi_pwrseq>;
+	vmmc-supply = <&vcc_ap6210>;
+	non-removable;
+	wakeup-source;
+	keep-power-in-suspend;
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+	brcmf: wifi@1 {
+		reg = <1>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&wifi_int>;
+		compatible = "brcm,bcm4329-fmac";
+		interrupt-parent = <&gpio3>;
+		interrupts = <RK_PD2 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-names = "host-wake";
+	};
+};
+
 &pwm1 {
 	status = "okay";
 };
@@ -311,6 +361,27 @@
 	status = "okay";
 };
 
+&uart0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart0_xfer>, <&uart0_rts>, <&uart0_cts>;
+	uart-has-rtscts;
+	status = "okay";
+
+	bluetooth {
+		compatible = "brcm,bcm20702a1";
+        pinctrl-names = "default";
+        pinctrl-0 = <&bt_int>, <&bt_reset>, <&bt_shutdown>;
+        vbat-supply = <&vcc_ap6210>;
+        vddio-supply = <&vcc_ap6210>;
+		device-wakeup-gpios = <&gpio3 RK_PC6 GPIO_ACTIVE_HIGH>;
+		shutdown-gpios = <&gpio3 RK_PC7 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio3 RK_PD1 GPIO_ACTIVE_LOW>;
+        interrupt-parent = <&gpio0>;
+        interrupts = <RK_PA5 IRQ_TYPE_EDGE_FALLING>;
+		max-speed = <1500000>;
+	};
+};
+
 &pinctrl {
 	pcfg_output_low: pcfg-output-low {
 		output-low;
@@ -319,6 +390,36 @@
 	sd0 {
 		sdmmc_pwr: sdmmc-pwr {
 			rockchip,pins = <3 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	ap6210 {
+		ap6210_pwr: ap6210-pwr {
+			rockchip,pins = <1 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	bt {
+		bt_int: bt-int {
+			rockchip,pins = <0 RK_PA5 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+		bt_wake: bt-wake {
+			rockchip,pins = <3 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+		bt_shutdown: bt-shutdown {
+			rockchip,pins = <3 RK_PC7 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+		bt_reset: bt-reset {
+			rockchip,pins = <3 RK_PD1 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	wifi {
+		wifi_pwr: wifi-pwr {
+			rockchip,pins = <3 RK_PD0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+		wifi_int: wifi-int {
+			rockchip,pins = <3 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
