@@ -59,7 +59,7 @@
 		post-power-on-delay-ms = <10>;
 
 		// Must be given. Hopefully this does not break anything.
-		clocks = <&cru SCLK_SDIO>;
+		clocks = <&cru SCLK_TIMER6>;
 		clock-names = "ext_clock";
 	};
 
@@ -103,6 +103,21 @@
 
 &gpu {
 	status = "okay";
+};
+
+&cru {
+	assigned-clocks = <&cru PLL_GPLL>, <&cru PLL_CPLL>,
+			  <&cru ACLK_CPU>,
+			  <&cru HCLK_CPU>, <&cru PCLK_CPU>,
+			  <&cru ACLK_PERI>, <&cru HCLK_PERI>,
+			  <&cru PCLK_PERI>,
+              <&cru SCLK_SDMMC>, <&cru SCLK_SDIO>;
+	assigned-clock-rates = <768000000>, <594000000>,
+			       <192000000>,
+			       <96000000>, <48000000>,
+			       <192000000>, <96000000>,
+			       <48000000>,
+			       <48000000>, <24000000>;
 };
 
 &i2c1 {
@@ -336,7 +351,10 @@
 	vmmc-supply = <&vcc_ap6210>;
 	non-removable;
 	wakeup-source;
-	keep-power-in-suspend;
+    cap-sd-highspeed;
+	cap-mmc-highspeed;
+    keep-power-in-suspend;
+    max-frequency = <24000000>;
 
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -344,7 +362,7 @@
 		reg = <1>;
         pinctrl-names = "default";
         pinctrl-0 = <&wifi_int>;
-		compatible = "brcm,bcm4329-fmac";
+		compatible = "brcm,bcm43362-fmac";
 		interrupt-parent = <&gpio3>;
 		interrupts = <RK_PD2 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "host-wake";
