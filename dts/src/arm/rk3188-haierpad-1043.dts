@@ -80,6 +80,19 @@
 		regulator-always-on;
 	};
 
+	vcc_rk618_ts: rk618-ts-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "rk618-ts-supply";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio0 RK_PA3 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&rk618_pwr>;
+		startup-delay-us = <100000>;
+		vin-supply = <&vdd_io>;
+		regulator-always-on;
+	};
+
     backlight: backlight {
         status = "okay";
         compatible = "pwm-backlight";
@@ -122,6 +135,11 @@
 			       <192000000>, <96000000>,
 			       <48000000>,
 			       <48000000>, <24000000>;
+};
+
+&i2c0 {
+	status = "okay";
+	clock-frequency = <400000>;
 };
 
 &i2c1 {
@@ -238,6 +256,30 @@
     };
 };
 
+&i2c2 {
+	status = "okay";
+	clock-frequency = <400000>;
+
+    vtl_ts@1 {
+        compatible = "ct,vtl_ts";
+        reg = <0x01>;
+		status = "okay";
+        pinctrl-names = "default";
+        pinctrl-0 = <&ts_int>, <&ts_reset>;
+        interrupt-parent = <&gpio1>;
+        interrupts = <RK_PB7 IRQ_TYPE_EDGE_FALLING>;
+		reset-gpios = <&gpio0 RK_PB6 GPIO_ACTIVE_LOW>;
+        screen_max_x = <1920>;
+        screen_max_y = <1200>;
+        pwr-supply = <&vcc_rk618_ts>;
+    };
+};
+
+&i2c3 {
+	status = "okay";
+	clock-frequency = <400000>;
+};
+
 &i2c4 {
 	status = "okay";
 	clock-frequency = <100000>;
@@ -252,8 +294,8 @@
 		assigned-clocks = <&cru SCLK_I2S0>;
 		assigned-clock-rates = <12000000>;
 		reset-gpios = <&gpio3 RK_PB2 GPIO_ACTIVE_LOW>;
-		enable-gpios = <&gpio0 RK_PA3 GPIO_ACTIVE_HIGH>;
 		status = "okay";
+        pwr-supply = <&vcc_rk618_ts>;
 
 		clock: cru {
 			compatible = "rockchip,rk618-cru";
@@ -421,6 +463,21 @@
 	ap6210 {
 		ap6210_pwr: ap6210-pwr {
 			rockchip,pins = <1 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	rk618 {
+		rk618_pwr: rk618-pwr {
+			rockchip,pins = <0 RK_PA3 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	touch {
+		ts_int: ts-int {
+			rockchip,pins = <1 RK_PB7 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+		ts_reset: ts-reset {
+			rockchip,pins = <0 RK_PB6 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
