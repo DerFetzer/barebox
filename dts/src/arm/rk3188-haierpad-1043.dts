@@ -367,6 +367,7 @@
         pinctrl-names = "default";
         pinctrl-0 = <&wifi_int>;
 		compatible = "brcm,bcm43362-fmac";
+        brcm,drive-strength = <32>;
 		interrupt-parent = <&gpio3>;
 		interrupts = <RK_PD2 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "host-wake";
